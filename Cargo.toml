@@ -1,0 +1,15 @@
+[package]
+name = "llm"
+authors = ["Joshua Peschke <joshua.peschke@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4.1.11", features = ["derive"] }
+dialoguer = "0.10.3"
+thiserror = "1.0.40"
+indicatif = { version = "0.17.3", features = ["tokio"] }
