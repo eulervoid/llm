@@ -1,11 +1,13 @@
 mod api;
-use std::time::Duration;
+mod theme;
 
 use api::{Message, OpenAI, Role};
 use clap::Parser;
-use dialoguer::{theme::SimpleTheme, Input};
+use dialoguer::Input;
 use indicatif::ProgressBar;
 use reqwest::Error;
+use std::time::Duration;
+use theme::{format_message, LLMTheme};
 
 #[derive(Debug, Clone, Parser)]
 struct Opts {
@@ -46,7 +48,7 @@ async fn main() -> Result<(), Error> {
 
     loop {
         if !messages.is_empty() && messages.last().unwrap().role != Role::User {
-            let user_message: String = Input::<String>::with_theme(&SimpleTheme)
+            let user_message: String = Input::with_theme(&LLMTheme)
                 .with_prompt("User")
                 .interact_text()
                 .unwrap();
@@ -55,16 +57,17 @@ async fn main() -> Result<(), Error> {
                 content: user_message,
             });
         }
+        println!("");
         let spinner = ProgressBar::new_spinner();
         spinner.set_message("processing");
-        spinner.enable_steady_tick(Duration::from_millis(50));
+        spinner.enable_steady_tick(Duration::from_millis(100));
         let result = api
             .get_chat_completion(opts.model.as_deref().unwrap_or("gpt-3.5-turbo"), &messages)
             .await
             .unwrap();
         spinner.finish_and_clear();
         let assistant_message = &result.choices.first().unwrap().message;
-        println!("{}", format_assistant_message(&assistant_message.content));
+        println!("{}\n", format_message(&assistant_message, 72));
         messages.push(assistant_message.to_owned());
         if !opts.interactive {
             break;
@@ -72,8 +75,4 @@ async fn main() -> Result<(), Error> {
     }
 
     Ok(())
-}
-
-fn format_assistant_message(message: &str) -> String {
-    format!("Assistant: {}", message)
 }
